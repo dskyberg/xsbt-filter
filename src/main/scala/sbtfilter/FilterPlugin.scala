@@ -11,7 +11,10 @@ import java.io.File
 */
 trait FilterKeys {
   val filterExtraProps     = settingKey[Seq[(String, String)]]("Extra filter properties.")
-  val filterProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterBaseProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterBaseProjectProps2   = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterCompileProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterTestProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
   val filterSystemProps    = taskKey[Seq[(String, String)]]("System filter properties.")
   val filterManagedProps   = taskKey[Seq[(String, String)]]("Managed filter properties.")
   val filterUnmanagedProps = taskKey[Seq[(String, String)]]("Filter properties defined in filters.")
@@ -35,10 +38,99 @@ object FilterPlugin extends AutoPlugin {
 
   lazy val baseFilterSettings = Seq(
     filterExtraProps := Nil,
-    filterProjectProps <<= (organization, name, description, version, scalaVersion, sbtVersion) map {
-      (o, n, d, v, scv, sv) =>
-        Seq("organization" -> o, "name" -> n, "description" -> d, "version" -> v, "scalaVersion" -> scv, "sbtVersion" -> sv)
-          .map { case (k, v) => (s"project.$k", v) }
+   filterBaseProjectProps <<= (
+      organization, 
+      name, 
+      moduleName,
+      description, 
+      homepage,
+      version, 
+      scalaVersion, 
+      scalaBinaryVersion,
+      sbtVersion,
+      sbtBinaryVersion,
+      baseDirectory
+    ) map {
+      (
+        o,
+        n, 
+        mn,
+        d, 
+        h,
+        v, 
+        scv, 
+        scbv,
+        sv,
+        sbv,
+        b
+      ) =>
+        Seq(
+          "organization" -> o, 
+          "name" -> n, 
+          "moduleName" -> mn,
+          "description" -> d,
+          "homepage" -> h,
+          "version" -> v, 
+          "scalaVersion" -> scv, 
+          "scalaBinaryVersion" -> scbv,
+          "sbtVersion" -> sv,
+          "sbtBinaryVersion" -> sbv,
+          "baseDirectory" -> b
+        ) .map { case (k, v) => (s"project.$k", s"$v") }
+    },
+   
+    filterBaseProjectProps2 <<= (
+      target,
+      sourceDirectory,
+      classDirectory in Compile
+    ) map {
+      (
+        t,
+        sd,
+        cd
+      ) =>
+        Seq(
+          "target" -> t,
+          "sourceDirectory" -> sd,
+          "compileClassDirectory" -> cd
+        ) .map { case (k, v) => (s"project.$k", s"$v") }
+    },
+
+    filterCompileProjectProps <<= (
+      scalaSource in Compile,
+      javaSource in Compile,
+      resourceDirectory in Compile
+    ) map {
+      (
+        ss,
+        js,
+        rd
+      ) =>
+        Seq(
+          "compileScalaSource" -> ss,
+          "compileJavaSource" -> js,
+          "compileResourceDirectory" -> rd
+        ).map { 
+           case (k, v) => (s"project.$k", s"$v") 
+        }
+    },
+    filterTestProjectProps <<= (
+      scalaSource in Test,
+      javaSource in Test,
+      resourceDirectory in Test
+    ) map {
+      (
+        ss,
+        js,
+        rd
+      ) =>
+        Seq(
+          "testScalaSource" -> ss,
+          "testJavaSource" -> js,
+          "testResourceDirectory" -> rd
+        ).map { 
+          case (k, v) => (s"project.$k", s"$v") 
+          }
     },
     filterSystemProps := sys.props.toSeq)
 
@@ -49,7 +141,7 @@ object FilterPlugin extends AutoPlugin {
     copyResources := {
       filterResources.value(copyResources.value)
     },
-    filterManagedProps <<= (filterProjectProps, filterSystemProps) map (_ ++ _),
+    filterManagedProps <<= (filterBaseProjectProps, filterBaseProjectProps2, filterCompileProjectProps, filterTestProjectProps, filterSystemProps) map (_ ++ _ ++ _++ _++ _),
     filterUnmanagedProps := Nil,
     filterProps <<= (filterExtraProps, filterManagedProps, filterUnmanagedProps) map (_ ++ _ ++ _))
 
