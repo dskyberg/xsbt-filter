@@ -16,6 +16,7 @@ trait FilterKeys {
   val filterCompileProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
   val filterTestProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
   val filterSystemProps    = taskKey[Seq[(String, String)]]("System filter properties.")
+  val filterEnvProps    = taskKey[Seq[(String, String)]]("Environment filter properties.")  
   val filterManagedProps   = taskKey[Seq[(String, String)]]("Managed filter properties.")
   val filterUnmanagedProps = taskKey[Seq[(String, String)]]("Filter properties defined in filters.")
   val filterProps          = taskKey[Seq[(String, String)]]("All filter properties.")
@@ -132,7 +133,9 @@ object FilterPlugin extends AutoPlugin {
           case (k, v) => (s"project.$k", s"$v") 
           }
     },
-    filterSystemProps := sys.props.toSeq)
+    filterSystemProps := sys.props.toSeq.map {case (k, v) => (s"sys.$k", v)},
+    filterEnvProps := sys.env.toSeq.map {case (k, v) => (s"env.$k", v)}
+  )
 
   lazy val filterConfigSettings: Seq[Setting[_]] = Seq(
     includeFilter in filterResources := "*.properties" | "*.xml",
@@ -141,7 +144,7 @@ object FilterPlugin extends AutoPlugin {
     copyResources := {
       filterResources.value(copyResources.value)
     },
-    filterManagedProps <<= (filterBaseProjectProps, filterBaseProjectProps2, filterCompileProjectProps, filterTestProjectProps, filterSystemProps) map (_ ++ _ ++ _++ _++ _),
+    filterManagedProps <<= (filterBaseProjectProps, filterBaseProjectProps2, filterCompileProjectProps, filterTestProjectProps, filterSystemProps, filterEnvProps) map (_ ++ _ ++ _++ _++ _++ _),
     filterUnmanagedProps := Nil,
     filterProps <<= (filterExtraProps, filterManagedProps, filterUnmanagedProps) map (_ ++ _ ++ _))
 
@@ -151,7 +154,7 @@ object FilterPlugin extends AutoPlugin {
     val incl = (includeFilter in filterResources).value
     val excl = (excludeFilter in filterResources).value
     val props = filterProps.value.toMap
-
+    
     (mappings: Seq[(File, File)]) => {
       val filtered = mappings filter { case (src, _) =>
         println(src, incl.accept(src), excl.accept(src))

@@ -48,9 +48,8 @@ The plugin comes with a set of default settings. This is what you get with the d
 
 * only `.properties` and `.xml` resources are filtered
 * filter resources (only `.properties` and `.xml`) should be placed under a directory `filters`
-* the following values are available as replacement values:
-* the following values are available as replacement values:
-  * build settings
+* the following values  are available as replacement values:
+  * SBT setting keys (prepended with "project.")
     * organization 
     * name
     * moduleName
@@ -71,8 +70,8 @@ The plugin comes with a set of default settings. This is what you get with the d
     * testScalaSource
     * testJavaSource
     * testResourceDirectory
-  * system properties
-  * environment variables
+  * system properties (prepended with "sys.")
+  * environment variables (prepended with "env.")
   * the user-defined properties defined in filter resources
 * resources filtering is triggered when `copy-resources` is executed
 
