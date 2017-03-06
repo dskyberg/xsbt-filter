@@ -1,6 +1,6 @@
-version := "0.5-SNAPSHOT"
-
 sbtPlugin := true
+
+version := "0.5-SNAPSHOT"
 
 name := "xsbt-filter"
 
@@ -13,6 +13,14 @@ scalacOptions ++= Seq("-deprecation", "-unchecked")
 licenses := Seq("New BSD License" -> url("http://opensource.org/licenses/BSD-3-Clause"))
 
 homepage := Some(url("http://sdb.github.com/xsbt-filter/"))
+
+ScriptedPlugin.scriptedSettings
+
+scriptedLaunchOpts := { scriptedLaunchOpts.value ++
+  Seq("-Xmx1024M", "-XX:MaxMetaspaceSize=512M", "-Dplugin.version=" + version.value)
+}
+
+scriptedBufferLog := false
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
