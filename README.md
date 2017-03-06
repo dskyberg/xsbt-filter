@@ -49,7 +49,28 @@ The plugin comes with a set of default settings. This is what you get with the d
 * only `.properties` and `.xml` resources are filtered
 * filter resources (only `.properties` and `.xml`) should be placed under a directory `filters`
 * the following values are available as replacement values:
-  * name, version, scalaVersion and a couple of other build settings (the setting name is used as key)
+* the following values are available as replacement values:
+  * build settings
+    * organization 
+    * name
+    * moduleName
+    * description
+    * homepage
+    * version
+    * scalaVersion
+    * scalaBinaryVersion
+    * sbtVersion
+    * sbtBinaryVersion
+    * baseDirectory
+    * target
+    * sourceDirectory
+    * classDirectory
+    * compileScalaSource
+    * compileJavaSource
+    * compileResourceDirectory
+    * testScalaSource
+    * testJavaSource
+    * testResourceDirectory
   * system properties
   * environment variables
   * the user-defined properties defined in filter resources
