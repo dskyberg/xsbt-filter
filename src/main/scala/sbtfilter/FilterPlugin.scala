@@ -39,7 +39,7 @@ object FilterPlugin extends AutoPlugin {
 
   lazy val baseFilterSettings = Seq(
     filterExtraProps := Nil,
-   filterBaseProjectProps <<= (
+    filterBaseProjectProps <<= (
       organization, 
       name, 
       moduleName,
@@ -138,9 +138,11 @@ object FilterPlugin extends AutoPlugin {
   )
 
   lazy val filterConfigSettings: Seq[Setting[_]] = Seq(
-    includeFilter in filterResources := "*.properties" | "*.xml",
+    includeFilter in filterResources := PropertyFileFilter || XMLFileFilter,
     excludeFilter in filterResources := HiddenFileFilter || ImageFileFilter,
     filterResources := filterTask.value,
+
+    // FilterPlugin only acts on the files provided by copyResources
     copyResources := {
       filterResources.value(copyResources.value)
     },
@@ -162,12 +164,8 @@ object FilterPlugin extends AutoPlugin {
 
       val webXml = (target.value ** "WEB-INF" / "web.xml").get
       val inputFiles = filtered.map(_._2) ++ webXml
-
+      
       Filter(s.log, inputFiles, props)
-
-      println(incl)
-      println(filtered.mkString("\n"))
-
       mappings
     }
   }

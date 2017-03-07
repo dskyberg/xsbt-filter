@@ -80,25 +80,25 @@ The plugin comes with a set of default settings. This is what you get with the d
 Take a look at the source code for [FilterPlugin](https://github.com/sdb/xsbt-filter/blob/master/src/FilterPlugin.scala) for all settings.
 
 Add the following to your `build.sbt` if you want to change any of the settings provided by this plugin:
-
+```
     import FilterKeys._
+```
+### Filter resource paths and unmanagedResources
+FilterPlugin acts on the set of files in unmanagedResources, as part of the copyResources task.
 
-### Filter resource paths
+Use the `includeFilter` and `excludeFilter` settings in Compile and Test to filter the set of unmanagedResources:
+```
+    includeFilter in (Compile) :=  AllPassFilter, 
 
-Use the `filter-directory-name` setting to configure the name of the directory containing the filters:
+    excludeFilter in (Test) := HiddenFileFilter || "*.bmp"
+```
+### Filtering resources
 
-    filterDirectoryName := "my-filters"
 
-Use the `include-filter` setting to change the file filter that determines which filters to include:
-
-    includeFilter in (Compile, filters) ~= { f => f || ("*.props" | "*.conf") }
-
-### Filtered resource paths
-
-Use the `include-filter` setting to change the file filter that determines which resources need to be filtered:
-
+Use the `includeFilter` and `excludeFilter` settings to change the that PluginFilter actually filters: 
+```
     includeFilter in (Compile, filterResources) ~= { f => f || ("*.props" | "*.conf") }
-
+```
 ### Properties
 
 Use the `filter-extra-props` setting to add extra properties to be used as replacement values:

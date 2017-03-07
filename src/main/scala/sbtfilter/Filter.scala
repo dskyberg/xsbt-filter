@@ -7,6 +7,15 @@ object ImageFileFilter extends FileFilter {
   def accept(file: File) = formats contains file.ext.toLowerCase
 }
 
+object PropertyFileFilter extends FileFilter {
+  val formats = Seq("properties")
+  def accept(file: File) = "properties" == file.ext.toLowerCase
+}
+
+object XMLFileFilter extends FileFilter {
+  def accept(file: File) = "xml" == file.ext.toLowerCase
+}
+
 object Filter {
   import scala.util.matching.Regex._
   import java.io.{ FileReader, BufferedReader, PrintWriter }
