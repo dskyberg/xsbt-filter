@@ -138,7 +138,7 @@ object FilterPlugin extends AutoPlugin {
   )
 
   lazy val filterConfigSettings: Seq[Setting[_]] = Seq(
-    includeFilter in filterResources := PropertyFileFilter || XMLFileFilter,
+    includeFilter in filterResources := AllPassFilter,
     excludeFilter in filterResources := HiddenFileFilter || ImageFileFilter,
     filterResources := filterTask.value,
 
@@ -164,7 +164,7 @@ object FilterPlugin extends AutoPlugin {
 
       val webXml = (target.value ** "WEB-INF" / "web.xml").get
       val inputFiles = filtered.map(_._2) ++ webXml
-      
+
       Filter(s.log, inputFiles, props)
       mappings
     }
