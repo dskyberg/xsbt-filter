@@ -1,6 +1,6 @@
 sbtPlugin := true
 
-version := "0.5-SNAPSHOT"
+version := "0.5.0"
 
 name := "xsbt-filter"
 
@@ -23,11 +23,11 @@ scriptedLaunchOpts := { scriptedLaunchOpts.value ++
 scriptedBufferLog := false
 
 publishTo := {
-  val nexus = "https://oss.sonatype.org/"
+  val nexus = "https://nexus.dev.confyrm.com/"
   if (version.value.trim.endsWith("SNAPSHOT"))
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    Some("releases" at nexus + "content/repositories/releases")
 }
 
 publishMavenStyle := true
@@ -36,16 +36,15 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { x => false }
 
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 pomExtra := (
   <scm>
-    <url>git@github.com:sdb/xsbt-filter.git</url>
-    <connection>scm:git:git@github.com:sdb/xsbt-filter.git</connection>
+    <url>git@github.com:confyrm/auth-service.git</url>
+    <connection>scm:git:git@github.com:confyrm/auth-service.git</connection>
   </scm>
   <developers>
     <developer>
-      <id>sdb</id>
-      <name>Stefan De Boey</name>
-      <url>https://github.com/sdb</url>
+      <id>david</id>
+      <name>David Skyberg</name>
     </developer>
-  </developers>
-)
+  </developers>)
