@@ -6,8 +6,6 @@ name := "xsbt-filter"
 
 organization := "com.github.sdb"
 
-scalaVersion := "2.10.5"
-
 scalacOptions ++= Seq("-deprecation", "-unchecked")
 
 licenses := Seq("New BSD License" -> url("http://opensource.org/licenses/BSD-3-Clause"))
@@ -22,6 +20,10 @@ scriptedLaunchOpts := { scriptedLaunchOpts.value ++
 
 scriptedBufferLog := false
 
+publishMavenStyle := true
+
+publishArtifact in Test := false
+
 publishTo := {
   val nexus = "https://nexus.dev.confyrm.com/"
   if (version.value.trim.endsWith("SNAPSHOT"))
@@ -30,13 +32,10 @@ publishTo := {
     Some("releases" at nexus + "content/repositories/releases")
 }
 
-publishMavenStyle := true
-
-publishArtifact in Test := false
-
 pomIncludeRepository := { x => false }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
 pomExtra := (
   <scm>
     <url>git@github.com:confyrm/auth-service.git</url>
@@ -48,3 +47,4 @@ pomExtra := (
       <name>David Skyberg</name>
     </developer>
   </developers>)
+

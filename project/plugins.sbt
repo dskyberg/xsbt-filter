@@ -1,3 +1,3 @@
-libraryDependencies <+= sbtVersion(v => "org.scala-sbt" % "scripted-plugin" % v)
+libraryDependencies += "org.scala-sbt" % "scripted-plugin" % sbtVersion.value
 
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
