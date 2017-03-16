@@ -164,10 +164,8 @@ object FilterPlugin extends AutoPlugin {
     val useHandlebars = filterUseHandlebars.value
     val pattern = if (useHandlebars) Filter.HandlebarPattern else filterPattern.value
     val props = filterProps.value.toMap
-    s.log.warn(s"xsbt-filter: filterUseHandlebars: $useHandlebars pattern: [$pattern]")
     (mappings: Seq[(File, File)]) => {
       val filtered = mappings filter { case (src, _) =>
-        println(src, incl.accept(src), excl.accept(src))
         incl.accept(src) && !excl.accept(src) && !src.isDirectory }
 
       val webXml = (target.value ** "WEB-INF" / "web.xml").get

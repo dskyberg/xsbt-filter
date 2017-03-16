@@ -4,5 +4,5 @@ sys.props.get("plugin.version") match {
       """|The system property 'plugin.version' is not defined.
          |Please specify this property using the SBT flag -D.""".stripMargin)
   case Some(pluginVersion) =>
-    addSbtPlugin("com.confyrm.sbt" % "xsbt-filter" % pluginVersion)
+    addSbtPlugin("org.dskyberg.sbt" % "xsbt-filter" % pluginVersion)
 }

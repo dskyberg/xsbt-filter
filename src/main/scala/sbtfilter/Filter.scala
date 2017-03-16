@@ -42,7 +42,6 @@ object Filter {
     IO.withTemporaryDirectory { dir =>
       files.foreach { src =>
         try {
-          log.warn(s"Filtering $src with [$pattern]")
           val dest = new File(dir, src.getName)
           val out = new PrintWriter(dest)
           val in = new BufferedReader(new FileReader(src))
@@ -50,7 +49,6 @@ object Filter {
           in.close()
           out.close()
           IO.copyFile(dest, src, preserveLastModified = true)
-          println(IO.read(dest))
           true
         } catch {
           case e: Throwable =>
