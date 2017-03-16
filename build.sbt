@@ -4,7 +4,7 @@ version := "0.5.0"
 
 name := "xsbt-filter"
 
-organization := "com.github.sdb"
+organization := "org.dskyberg.sbt"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked")
 

@@ -4,6 +4,8 @@ version := "0.1"
 
 name := "simple"
 
+filterUseHandlebars in Test := true
+
 excludeFilter in (Compile, filterResources) := (excludeFilter in (Compile, filterResources)).value || "*.txt"
 
 // Since SBT 0.13.6, `enablePlugins(FilterPlugin)` can be written directly

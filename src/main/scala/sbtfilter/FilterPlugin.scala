@@ -10,17 +10,19 @@ import java.io.File
 - watchSources
 */
 trait FilterKeys {
-  val filterExtraProps     = settingKey[Seq[(String, String)]]("Extra filter properties.")
-  val filterBaseProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
-  val filterBaseProjectProps2   = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterExtraProps            = settingKey[Seq[(String, String)]]("Extra filter properties.")
+  val filterPattern               = settingKey[String]("Regex pattern to use.")
+  val filterUseHandlebars         = settingKey[Boolean]("Use the handlebar, {{val}}, pattern")
+  val filterBaseProjectProps      = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterBaseProjectProps2     = taskKey[Seq[(String, String)]]("Project filter properties.")
   val filterCompileProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
-  val filterTestProjectProps   = taskKey[Seq[(String, String)]]("Project filter properties.")
-  val filterSystemProps    = taskKey[Seq[(String, String)]]("System filter properties.")
-  val filterEnvProps    = taskKey[Seq[(String, String)]]("Environment filter properties.")  
-  val filterManagedProps   = taskKey[Seq[(String, String)]]("Managed filter properties.")
-  val filterUnmanagedProps = taskKey[Seq[(String, String)]]("Filter properties defined in filters.")
-  val filterProps          = taskKey[Seq[(String, String)]]("All filter properties.")
-  val filterResources      = taskKey[Seq[(File, File)] => Seq[(File, File)]]("Filters all resources.")
+  val filterTestProjectProps      = taskKey[Seq[(String, String)]]("Project filter properties.")
+  val filterSystemProps           = taskKey[Seq[(String, String)]]("System filter properties.")
+  val filterEnvProps              = taskKey[Seq[(String, String)]]("Environment filter properties.")  
+  val filterManagedProps          = taskKey[Seq[(String, String)]]("Managed filter properties.")
+  val filterUnmanagedProps        = taskKey[Seq[(String, String)]]("Filter properties defined in filters.")
+  val filterProps                 = taskKey[Seq[(String, String)]]("All filter properties.")
+  val filterResources             = taskKey[Seq[(File, File)] => Seq[(File, File)]]("Filters all resources.")
 }
 
 object FilterPlugin extends AutoPlugin {
@@ -138,6 +140,9 @@ object FilterPlugin extends AutoPlugin {
   )
 
   lazy val filterConfigSettings: Seq[Setting[_]] = Seq(
+    filterPattern := Filter.DollarPattern,
+    filterUseHandlebars := false,
+
     includeFilter in filterResources := AllPassFilter,
     excludeFilter in filterResources := HiddenFileFilter || ImageFileFilter,
     filterResources := filterTask.value,
@@ -148,15 +153,18 @@ object FilterPlugin extends AutoPlugin {
     },
     filterManagedProps <<= (filterBaseProjectProps, filterBaseProjectProps2, filterCompileProjectProps, filterTestProjectProps, filterSystemProps, filterEnvProps) map (_ ++ _ ++ _++ _++ _++ _),
     filterUnmanagedProps := Nil,
-    filterProps <<= (filterExtraProps, filterManagedProps, filterUnmanagedProps) map (_ ++ _ ++ _))
+    filterProps <<= (filterExtraProps, filterManagedProps, filterUnmanagedProps) map (_ ++ _ ++ _)
+  )
 
   def filterTask = Def.task {
 
     val s = streams.value
     val incl = (includeFilter in filterResources).value
     val excl = (excludeFilter in filterResources).value
+    val useHandlebars = filterUseHandlebars.value
+    val pattern = if (useHandlebars) Filter.HandlebarPattern else filterPattern.value
     val props = filterProps.value.toMap
-    
+    s.log.warn(s"xsbt-filter: filterUseHandlebars: $useHandlebars pattern: [$pattern]")
     (mappings: Seq[(File, File)]) => {
       val filtered = mappings filter { case (src, _) =>
         println(src, incl.accept(src), excl.accept(src))
@@ -165,7 +173,7 @@ object FilterPlugin extends AutoPlugin {
       val webXml = (target.value ** "WEB-INF" / "web.xml").get
       val inputFiles = filtered.map(_._2) ++ webXml
 
-      Filter(s.log, inputFiles, props)
+      Filter(s.log, inputFiles, props, pattern)
       mappings
     }
   }

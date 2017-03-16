@@ -1,65 +1,57 @@
-[![Build Status](https://secure.travis-ci.org/sdb/xsbt-filter.png)](http://travis-ci.org/sdb/xsbt-filter)
-
-The xsbt-filter project provides the necessary functionality for filtering resources in an [sbt](https://github.com/harrah/xsbt) project. The plugin's functionality is similar to Maven's [resource filtering](http://maven.apache.org/plugins/maven-resources-plugin/examples/filter.html) mechanism and is useful when migrating Maven projects that depend heavily on resource filtering.
-
-## Requirements
-
-* sbt 0.11.0 or later
-
-## Overview 
-
-This plugin scans your resources (e.g `src/main/resources`, `src/test/resources`) for variables (surrounded by `${` and `}`) and replaces them with values which can come from the system properties, your project properties and filter resources.
-
-For example, if we have a resource `src/main/resources/hello.txt` containing:
-
-    Hello, ${name}
-
-When `copy-resources` is executed, this will create a resource output `hello.txt` in the project's classes output directory. The variable (or property reference) `${name}` will be replaced with the name of your project.
-
-Filter resources are one way to add extra properties which can be used to substitute variables. By default the plug-in looks for filter resources in a `filters` directory under the source directories for the `main` (`compile`) and `test` configurations (`src/main/filters` and `src/test/filters`).
+This started as a fork of [guersam/xsbt-filter (branch tmp/autoplugin)](https://github.com/guersam/xsbt-filter/tree/tmp/autoplugin),
+which started as a forg of [sdb/xsbt-filter](https://github.com/sdb/xsbt-filter).  You
+should review that project first, before reading this.
 
 ## Setup
 
 Add the following to your plugin configuration (in `project/plugins/build.sbt`):
-    
-    addSbtPlugin("com.github.sdb" % "xsbt-filter" % "0.4")
 
-If you want to use the latest snapshot version then you need to add the Sonatype OSS Maven repository:
+```scala
+addSbtPlugin("org.dskyberg.sbt" % "xsbt-filter" % "0.5.0")
+```
 
-    resolvers += "Sonatype OSS snapshots repository" at "https://oss.sonatype.org/content/repositories/snapshots/"
-    
-    addSbtPlugin("com.github.sdb" % "xsbt-filter" % "0.5-SNAPSHOT")
+Add `FilterPlugin` to your `enablePlugins`:
 
-Add the default filter settings to your project in `build.sbt`:
+```scala
+enablePlugins(FilterPLugin)
+```
 
-    seq(filterSettings: _*)
+or
+
+```scala
+lazy val root = project.in(file("."))
+  .enablePlugins(FilterPlugin)
+```
 
 ## Build
 
 Build and install the plugin to use the latest SNAPSHOT version:
 
-    git clone git://github.com/sdb/xsbt-filter.git
-    cd xsbt-filter
-    sbt publish-local
+```sh
+$> git clone git://github.com/dskyberg/xsbt-filter.git
+$> cd xsbt-filter
+$> sbt publish-local
+```
 
 ## Default Configuration
 
-The plugin comes with a set of default settings. This is what you get with the default configuration:
-
-* only `.properties` and `.xml` resources are filtered
-* filter resources (only `.properties` and `.xml`) should be placed under a directory `filters`
-* the following values  are available as replacement values:
-  * SBT setting keys (prepended with "project.")
+The sdb/xsbt-filter plugin supported the following default properties:
+* The following SBT setting keys (prepended with "project.")
     * organization 
     * name
-    * moduleName
     * description
-    * homepage
     * version
     * scalaVersion
-    * scalaBinaryVersion
     * sbtVersion
-    * sbtBinaryVersion
+* system properties (prepended with "sys.")
+* user-defined properties the settingKey `filterExtraProps`
+
+This plugin adds the following:
+* The following SBT setting keys (also prepended with "project."):
+    * moduleName
+    * homepage
+    * scalaBinaryVersion
+     * sbtBinaryVersion
     * baseDirectory
     * target
     * sourceDirectory
@@ -70,44 +62,47 @@ The plugin comes with a set of default settings. This is what you get with the d
     * testScalaSource
     * testJavaSource
     * testResourceDirectory
-  * system properties (prepended with "sys.")
   * environment variables (prepended with "env.")
-  * the user-defined properties defined in filter resources
-* resources filtering is triggered when `copy-resources` is executed
 
 ## Settings
 
 Take a look at the source code for [FilterPlugin](https://github.com/sdb/xsbt-filter/blob/master/src/FilterPlugin.scala) for all settings.
 
-Add the following to your `build.sbt` if you want to change any of the settings provided by this plugin:
-```
-    import FilterKeys._
-```
-### Filter resource paths and unmanagedResources
-FilterPlugin acts on the set of files in unmanagedResources, as part of the copyResources task.
+Note: Because this version is an AutoPlugin, you do not need to add any includes to your 
+`.sbt` files.  Just follow the [Setup](#setup) above.
 
-Use the `includeFilter` and `excludeFilter` settings in Compile and Test to filter the set of unmanagedResources:
-```
-    includeFilter in (Compile) :=  AllPassFilter, 
-
-    excludeFilter in (Test) := HiddenFileFilter || "*.bmp"
-```
 ### Filtering resources
+The standard copyResources settingKeys are also used by FilterPlugin to define
+which resources to act on.
 
+Use the `includeFilter` and `excludeFilter` settings in `filterResources` to change 
+which of the `unmanagedResources` FilterPlugin will actuall filters: 
 
-Use the `includeFilter` and `excludeFilter` settings to change the that PluginFilter actually filters: 
+```scala
+includeFilter in (Compile) :=  AllPassFilter
+excludeFilter in (Compile) := HiddenFileFilter || "*.bmp" 
+includeFilter in (Compile, filterResources) ~= { f => f || ("*.props" | "*.conf") }
 ```
-    includeFilter in (Compile, filterResources) ~= { f => f || ("*.props" | "*.conf") }
+
+### Filter pattern
+You can set `filterPattern` to change the regex pattern used to identify properties
+in resources.  The default pattern looks for patterns like`${property}`.  Defined by
+the regular expression `(^|[^\\])(\$\{)([^}]+?)(\})`.  If you wish to change the
+pattern, your regex must provide 4 groups:  
+1. Text before the exchange pattern 
+2. Exchange start identifier, such as `\$\{`
+3. Property name, such as `project.name`
+5. Excnahge end identifier, such as `\}'
+
+
+### filterUseHandlebars
+While the standard dollar sign (${property} is the default pattern. But you can 
+opt to use handlebars instead ({{property}}) by setting the following in your `.sbt` file:
+
+```scala
+// use handlebars, instead of the default pattern
+filterUseHandlebars in Compile := true
 ```
-### Properties
-
-Use the `filter-extra-props` setting to add extra properties to be used as replacement values:
-
-    extraProps += "author" -> "Foo Bar"
-
-Use the `filter-project-props` setting to change the name of the properties which are derived from project settings to avoid collisions with other properties:
-
-    projectProps ~= { _ map (p => ("project." + p._1, p._2)) }
 
 ## License
 
